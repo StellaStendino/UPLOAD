@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WHAT'S A TOOL?</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <main id="stage">
+    <h1>WHAT'S A TOOL?</h1>
+
+    <button id="uploadButton">UPLOAD SVG</button>
+    <input id="fileInput" type="file" accept=".svg,image/svg+xml" multiple />
+
+    <div id="modeLabel">SHOWING: W</div>
+  </main>
+
+  <div id="uploadModal" class="modal hidden">
+    <div class="modal-content">
+      <p>Was lädst du hoch?</p>
+
+      <div class="modal-buttons">
+        <button id="uploadAsW">W</button>
+        <button id="uploadAsOther">OTHER LETTER</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: black;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+#stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: black;
+}
+
+h1 {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: clamp(48px, 12vw, 180px);
+  font-weight: 400;
+  line-height: 0.9;
+  text-align: center;
+  color: white;
+
+  pointer-events: none;
+  z-index: 1;
+}
+
+#uploadButton {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 10;
+
+  background: black;
+  color: white;
+  border: 1px solid white;
+  padding: 12px 18px;
+
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#uploadButton:hover {
+  background: white;
+  color: black;
+}
+
+#fileInput {
+  display: none;
+}
+
+#modeLabel {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 10;
+
+  color: white;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+.floating-letter {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+
+  object-fit: contain;
+  filter: invert(1);
+
+  cursor: pointer;
+  z-index: 3;
+
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.floating-letter.selected {
+  outline: 1px solid white;
+  outline-offset: 8px;
+}
+
+.floating-letter.spinning {
+  animation: spin 1.2s linear infinite;
+}
+
+.hidden-letter {
+  display: none;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+
+  background: rgba(0, 0, 0, 0.85);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  border: 1px solid white;
+  background: black;
+  color: white;
+
+  padding: 32px;
+  min-width: 320px;
+
+  text-align: center;
+}
+
+.modal-content p {
+  margin: 0 0 24px 0;
+  font-size: 22px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.modal-buttons button {
+  flex: 1;
+
+  background: black;
+  color: white;
+  border: 1px solid white;
+
+  padding: 14px 18px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.modal-buttons button:hover {
+  background: white;
+  color: black;
+}
+
+@media (max-width: 600px) {
+  .floating-letter {
+    width: 100px;
+    height: 100px;
+  }
+
+  #uploadButton {
+    left: 16px;
+    bottom: 16px;
+  }
+
+  #modeLabel {
+    right: 16px;
+    bottom: 16px;
+  }
+}
