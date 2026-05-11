@@ -9,8 +9,8 @@ const uploadAsOther = document.getElementById("uploadAsOther");
 const modeLabel = document.getElementById("modeLabel");
 
 // TEMPO HIER ÄNDERN
-const MIN_SPEED = 3;
-const MAX_SPEED = 5;
+const MIN_SPEED = 0.8;
+const MAX_SPEED = 2.4;
 
 // GRÖSSE DER SVGs HIER ÄNDERN
 const LETTER_SIZE = 160;
@@ -33,8 +33,9 @@ uploadButton.addEventListener("click", () => {
 });
 
 fileInput.addEventListener("change", (event) => {
-  pendingFiles = Array.from(event.target.files).filter((file) =>
-    file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")
+  pendingFiles = Array.from(event.target.files).filter(
+    (file) =>
+      file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")
   );
 
   if (pendingFiles.length > 0) {
@@ -45,64 +46,99 @@ fileInput.addEventListener("change", (event) => {
 });
 
 uploadAsW.addEventListener("click", () => {
-  addFilesToStage("w");
+  uploadAndAddToStage("w");
   uploadModal.classList.add("hidden");
 });
 
 uploadAsOther.addEventListener("click", () => {
-  addFilesToStage("other");
+  uploadAndAddToStage("other");
   uploadModal.classList.add("hidden");
 });
 
-function addFilesToStage(type) {
-  pendingFiles.forEach((file) => {
-    const url = URL.createObjectURL(file);
-
-    const img = document.createElement("img");
-    img.src = url;
-    img.classList.add("floating-letter");
-    img.dataset.type = type;
-
-    img.style.width = `${LETTER_SIZE}px`;
-    img.style.height = `${LETTER_SIZE}px`;
-
-    const startX = Math.random() * (window.innerWidth - LETTER_SIZE);
-    const startY = Math.random() * (window.innerHeight - LETTER_SIZE);
-
-    img.style.left = `${startX}px`;
-    img.style.top = `${startY}px`;
-
-    if (type === "other" && !showOthers) {
-      img.classList.add("hidden-letter");
-    }
-
-    if (spinning) {
-      img.classList.add("spinning");
-    }
-
-    stage.appendChild(img);
-
-    const movement = createStraightIndividualMovement();
-
-    const letterObject = {
-      element: img,
-      x: startX,
-      y: startY,
-      vx: movement.vx,
-      vy: movement.vy,
-      type: type,
-      url: url
-    };
-
-    letters.push(letterObject);
-
-    img.addEventListener("click", (event) => {
-      event.stopPropagation();
-      selectLetter(letterObject);
-    });
-  });
-
+async function uploadAndAddToStage(type) {
+  const formData = new FormData();
+  formData.append("type", type);
+  pendingFiles.forEach((file) => formData.append("svg", file));
   pendingFiles = [];
+
+  try {
+    const res = await fetch("/upload", { method: "POST", body: formData });
+    const data = await res.json();
+
+    if (!data.success) return;
+
+    data.files.forEach(({ filename, type: fileType }) => {
+      addLetterToStage({
+        type: fileType,
+        filename,
+        url: `/uploads/${fileType}/${filename}`,
+      });
+    });
+  } catch (err) {
+    console.error("Upload fehlgeschlagen:", err);
+  }
+}
+
+function addLetterToStage({ type, filename, url }) {
+  const img = document.createElement("img");
+  img.src = url;
+  img.classList.add("floating-letter");
+  img.dataset.type = type;
+
+  img.style.width = `${LETTER_SIZE}px`;
+  img.style.height = `${LETTER_SIZE}px`;
+
+  const startX = Math.random() * (window.innerWidth - LETTER_SIZE);
+  const startY = Math.random() * (window.innerHeight - LETTER_SIZE);
+
+  img.style.left = `${startX}px`;
+  img.style.top = `${startY}px`;
+
+  if (type === "other" && !showOthers) {
+    img.classList.add("hidden-letter");
+  }
+
+  if (type === "w" && showOthers) {
+    img.classList.add("hidden-letter");
+  }
+
+  if (spinning) {
+    img.classList.add("spinning");
+  }
+
+  stage.appendChild(img);
+
+  const movement = createStraightIndividualMovement();
+
+  const letterObject = {
+    element: img,
+    x: startX,
+    y: startY,
+    vx: movement.vx,
+    vy: movement.vy,
+    type,
+    filename,
+    url,
+  };
+
+  letters.push(letterObject);
+
+  img.addEventListener("click", (event) => {
+    event.stopPropagation();
+    selectLetter(letterObject);
+  });
+}
+
+async function loadExistingFiles() {
+  try {
+    const res = await fetch("/uploads/list");
+    const files = await res.json();
+    files.forEach(({ type, filename, url }) => {
+      addLetterToStage({ type, filename, url });
+    });
+  } catch (err) {
+    console.error("Dateien konnten nicht geladen werden:", err);
+  }
 }
 
 function createStraightIndividualMovement() {
@@ -111,7 +147,7 @@ function createStraightIndividualMovement() {
 
   return {
     vx: Math.cos(angle) * speed,
-    vy: Math.sin(angle) * speed
+    vy: Math.sin(angle) * speed,
   };
 }
 
@@ -183,17 +219,22 @@ function toggleSpin() {
   });
 }
 
-function deleteSelectedLetter() {
+async function deleteSelectedLetter() {
   if (!selectedLetter) return;
 
-  selectedLetter.element.remove();
+  const { filename, type, element } = selectedLetter;
 
-  if (selectedLetter.url) {
-    URL.revokeObjectURL(selectedLetter.url);
-  }
-
+  element.remove();
   letters = letters.filter((letter) => letter !== selectedLetter);
   selectedLetter = null;
+
+  if (filename) {
+    try {
+      await fetch(`/uploads/${type}/${filename}`, { method: "DELETE" });
+    } catch (err) {
+      console.error("Löschen fehlgeschlagen:", err);
+    }
+  }
 }
 
 function animate() {
@@ -223,4 +264,5 @@ function animate() {
   requestAnimationFrame(animate);
 }
 
+loadExistingFiles();
 animate();
