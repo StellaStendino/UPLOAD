@@ -9,8 +9,8 @@ const uploadAsOther = document.getElementById("uploadAsOther");
 const modeLabel = document.getElementById("modeLabel");
 
 // TEMPO HIER ÄNDERN
-const MIN_SPEED = 0.8;
-const MAX_SPEED = 2.4;
+const MIN_SPEED = 3;
+const MAX_SPEED = 5;
 
 // GRÖSSE DER SVGs HIER ÄNDERN
 const LETTER_SIZE = 160;
